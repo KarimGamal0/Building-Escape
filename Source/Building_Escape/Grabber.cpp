@@ -26,13 +26,12 @@ void UGrabber::BeginPlay()
 
 void UGrabber::Grab()
 {
-
-
 	FHitResult HitResult = GetFirstPhysicsBodyInReach();
 	UPrimitiveComponent* ComponentToGrab = HitResult.GetComponent();
+	AActor* ActorHit = HitResult.GetActor();
 
-	if (HitResult.GetActor()) {
-
+	if (ActorHit) {
+		if (!PhysicsHandle) { return; }
 		PhysicsHandle->GrabComponentAtLocation(
 			ComponentToGrab,
 			NAME_None,
@@ -43,6 +42,7 @@ void UGrabber::Grab()
 
 void UGrabber::Release()
 {
+	if (!PhysicsHandle) { return; }
 	PhysicsHandle->ReleaseComponent();
 }
 
@@ -50,7 +50,7 @@ void UGrabber::Release()
 void UGrabber::FindThePhysicsHandle()
 {
 	PhysicsHandle = GetOwner()->FindComponentByClass<UPhysicsHandleComponent>();
-	if (PhysicsHandle == nullptr)
+	if (!PhysicsHandle)
 	{
 		UE_LOG(LogTemp, Error, TEXT("No Physics handle found on %s!"), *GetOwner()->GetName());
 	}
@@ -72,6 +72,7 @@ void UGrabber::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompone
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
+	if (!PhysicsHandle) { return; }
 	if (PhysicsHandle->GrabbedComponent) {
 
 		PhysicsHandle->SetTargetLocation(GetPlayerReach());
@@ -116,7 +117,6 @@ FVector UGrabber::GetPlayerWorldPos() const
 		OUT PlayerViewPointRotation
 	);
 
-
 	return PlayerViewPointLocation;
 }
 
@@ -129,7 +129,6 @@ FVector UGrabber::GetPlayerReach() const
 		OUT PlayerViewPointLocation,
 		OUT PlayerViewPointRotation
 	);
-
 
 	return PlayerViewPointLocation + PlayerViewPointRotation.Vector() * Reach;
 }
